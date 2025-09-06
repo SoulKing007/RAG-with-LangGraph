@@ -18,9 +18,9 @@ A comprehensive Retrieval Augmented Generation (RAG) pipeline built with LangGra
 
 ## Screenshot
 
-![RAG UI Screenshot](Screenshot%202025-09-06%20230841.png)
-
 ![RAG UI Screenshot](Screenshot%202025-09-06%20230828.png)
+
+![RAG UI Screenshot](Screenshot%202025-09-06%20230841.png)
 
 ### 1. Install Dependencies
 
@@ -374,5 +374,6 @@ CMD ["streamlit", "run", "rag_pipeline.py"]
 - Streamlit memory usage grows with documents
 
 - Consider Redis for session management
+
 
 
