@@ -16,6 +16,12 @@ A comprehensive Retrieval Augmented Generation (RAG) pipeline built with LangGra
 
 ## Quick Start
 
+## Screenshot
+
+![RAG UI Screenshot](assets/Screenshot-2025-09-06-230841.png)
+
+![RAG UI Screenshot](assets/Screenshot-2025-09-06-230828.png)
+
 ### 1. Install Dependencies
 
 ```bash
@@ -366,4 +372,5 @@ CMD ["streamlit", "run", "rag_pipeline.py"]
 - ChromaDB handles millions of vectors
 - Gemini API has rate limits
 - Streamlit memory usage grows with documents
+
 - Consider Redis for session management
