@@ -1,18 +1,15 @@
 import streamlit as st
 import os
 import tempfile
-import shutil
+import logging
 from pathlib import Path
 from typing import List, Dict, Any, Optional
-from typing_extensions import TypedDict, Annotated
+from typing_extensions import TypedDict
 import time
-import requests
-from urllib.parse import urlparse
 
 # Core LangChain imports
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain import hub
 from langgraph.graph import START, StateGraph
 from langchain_core.prompts import PromptTemplate
 
@@ -27,15 +24,11 @@ from langchain_community.document_loaders import (
     PyPDFLoader, 
     Docx2txtLoader,
     WebBaseLoader,
-    DirectoryLoader,
     TextLoader
 )
 
 # PowerPoint loader
 from pptx import Presentation
-import docx
-import PyPDF2
-import pdfplumber
 import bs4
 
 class RAGState(TypedDict):
@@ -160,7 +153,7 @@ class RAGPipeline:
         
         # Initialize embeddings
         self.embeddings = GoogleGenerativeAIEmbeddings(
-            model="models/embedding-001",
+            model="models/text-embedding-004",
             google_api_key=google_api_key
         )
         
@@ -217,7 +210,6 @@ class RAGPipeline:
         
         # Create graph
         graph_builder = StateGraph(RAGState).add_sequence([retrieve, generate])
-        graph_builder.add_edge(START, "retrieve")
         return graph_builder.compile()
     
     def add_documents(self, documents: List[Document]) -> int:
@@ -252,7 +244,8 @@ class RAGPipeline:
                 "document_count": count,
                 "collection_name": collection.name if hasattr(collection, 'name') else "default"
             }
-        except:
+        except Exception as e:
+            logging.warning(f"Could not get vector store stats: {e}")
             return {"document_count": 0, "collection_name": "default"}
 
 def main():
@@ -353,9 +346,11 @@ def main():
         st.markdown("---")
         
         # Initialize RAG pipeline
-        if "rag_pipeline" not in st.session_state:
+        if ("rag_pipeline" not in st.session_state
+                or st.session_state.get("_api_key") != google_api_key):
             with st.spinner("Initializing RAG pipeline..."):
                 st.session_state.rag_pipeline = RAGPipeline(google_api_key)
+                st.session_state._api_key = google_api_key
         
         # Vector store statistics
         st.header("📊 Vector Store Stats")
@@ -403,29 +398,30 @@ def main():
                                 tmp_file.write(uploaded_file.getvalue())
                                 tmp_path = tmp_file.name
                             
-                            # Process based on file type
-                            file_extension = uploaded_file.name.split('.')[-1].lower()
-                            
-                            if file_extension == 'pdf':
-                                docs = DocumentProcessor.load_pdf(tmp_path)
-                            elif file_extension == 'docx':
-                                docs = DocumentProcessor.load_docx(tmp_path)
-                            elif file_extension == 'pptx':
-                                docs = DocumentProcessor.load_pptx(tmp_path)
-                            elif file_extension == 'txt':
-                                docs = DocumentProcessor.load_txt(tmp_path)
-                            else:
-                                docs = []
-                            
-                            # Update metadata
-                            for doc in docs:
-                                doc.metadata["source"] = uploaded_file.name
-                                doc.metadata["type"] = file_extension
-                            
-                            all_documents.extend(docs)
-                            
-                            # Clean up temp file
-                            os.unlink(tmp_path)
+                            try:
+                                # Process based on file type
+                                file_extension = uploaded_file.name.split('.')[-1].lower()
+                                
+                                if file_extension == 'pdf':
+                                    docs = DocumentProcessor.load_pdf(tmp_path)
+                                elif file_extension == 'docx':
+                                    docs = DocumentProcessor.load_docx(tmp_path)
+                                elif file_extension == 'pptx':
+                                    docs = DocumentProcessor.load_pptx(tmp_path)
+                                elif file_extension == 'txt':
+                                    docs = DocumentProcessor.load_txt(tmp_path)
+                                else:
+                                    docs = []
+                                
+                                # Update metadata
+                                for doc in docs:
+                                    doc.metadata["source"] = uploaded_file.name
+                                    doc.metadata["type"] = file_extension
+                                
+                                all_documents.extend(docs)
+                            finally:
+                                # Clean up temp file
+                                os.unlink(tmp_path)
                     
                     # Process web URL
                     if web_url:
@@ -465,6 +461,10 @@ def main():
             placeholder="What is the main topic discussed in the documents?"
         )
         
+        # Initialize query history
+        if "query_history" not in st.session_state:
+            st.session_state.query_history = []
+        
         # Query button
         if st.button("🔍 Search", type="primary"):
             if user_question and st.session_state.rag_pipeline.get_vector_store_stats()["document_count"] > 0:
@@ -474,6 +474,9 @@ def main():
                     # Display results
                     st.subheader("🎯 Answer")
                     st.write(result["answer"])
+                    
+                    # Save to query history
+                    st.session_state.query_history.append((user_question, result["answer"]))
                     
                     # Display sources
                     if result["sources"]:
@@ -492,10 +495,6 @@ def main():
                 st.warning("Please enter a question")
             else:
                 st.warning("Please upload and process documents first")
-        
-        # Query history
-        if "query_history" not in st.session_state:
-            st.session_state.query_history = []
         
         if st.session_state.query_history:
             st.subheader("📜 Recent Queries")

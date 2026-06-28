@@ -23,7 +23,7 @@ class Config:
     
     # Model settings
     GEMINI_MODEL = "gemini-2.5-flash"
-    EMBEDDING_MODEL = "models/embedding-001"
+    EMBEDDING_MODEL = "models/text-embedding-004"
     TEMPERATURE = 0.3
     
     # File upload settings

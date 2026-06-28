@@ -5,7 +5,7 @@ A comprehensive Retrieval Augmented Generation (RAG) pipeline built with LangGra
 ## 🌟 Features
 
 - **LangGraph Orchestration**: State-based workflow management
-- **Gemini AI Integration**: Powered by Google's Gemini 1.5 Flash
+- **Gemini AI Integration**: Powered by Google's Gemini 2.5 Flash
 - **ChromaDB Vector Storage**: Persistent vector database
 - **Multi-format Support**: PDF, DOCX, PPTX, TXT files
 - **Web Scraping**: Direct URL content ingestion
@@ -162,7 +162,7 @@ class RAGState(TypedDict):
 ```python
 # ChromaDB Settings
 persist_directory = "./chroma_db"
-embedding_model = "models/embedding-001"
+embedding_model = "models/text-embedding-004"
 chunk_size = 1000
 chunk_overlap = 200
 similarity_top_k = 4
@@ -195,8 +195,8 @@ SIMILARITY_TOP_K=4
 ```
 
 ### Model Settings
-- **LLM**: Gemini 1.5 Flash
-- **Embeddings**: models/embedding-001
+- **LLM**: Gemini 2.5 Flash
+- **Embeddings**: models/text-embedding-004
 - **Temperature**: 0.3 (configurable)
 - **Max Tokens**: Default Gemini limits
 

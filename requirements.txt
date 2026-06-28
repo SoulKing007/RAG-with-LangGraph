@@ -1,0 +1,28 @@
+# Core LangChain
+langchain
+langchain-core
+langchain-text-splitters
+langchain-community
+langgraph
+
+# AI Model Integration
+langchain-google-genai
+google-generativeai
+
+# Vector Database
+chromadb
+langchain-chroma
+
+# Document Processing
+python-pptx
+docx2txt
+pypdf
+pdfplumber
+beautifulsoup4
+
+# User Interface
+streamlit
+streamlit-extras
+
+# Utilities
+typing-extensions
